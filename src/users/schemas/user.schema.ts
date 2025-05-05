@@ -23,14 +23,8 @@ export class User {
   @Prop()
   address: string;
 
-  @Prop({ type: Object })
-  company: {
-    _id: mongoose.Schema.Types.ObjectId;
-    name: string;
-  };
-
-  @Prop()
-  refreshToken: string;
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Company' })
+  company: mongoose.Schema.Types.ObjectId;
 
   @Prop({ type: Object })
   createdBy: {
@@ -49,12 +43,6 @@ export class User {
     _id: mongoose.Schema.Types.ObjectId;
     email: string;
   };
-
-  @Prop()
-  createdAt: Date;
-
-  @Prop()
-  updatedAt: Date;
 
   @Prop()
   isDeleted: boolean;

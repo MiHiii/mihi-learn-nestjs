@@ -1,51 +1,44 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schemas/user.schema';
 import { genSaltSync, hashSync, compare } from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Injectable()
-export class UsersService implements OnModuleInit {
+export class UsersService {
   constructor(
     @InjectModel(User.name)
     private userModel: Model<User>,
     private configService: ConfigService,
   ) {}
 
-  async onModuleInit() {
-    const count = await this.userModel.countDocuments();
-    if (count === 0) {
-      const salt = genSaltSync(10);
-      const hash = hashSync('123456', salt);
-      await this.userModel.insertMany([
-        {
-          name: 'Mihi',
-          email: 'admin@gmail.com',
-          password: hash,
-        },
-        {
-          name: 'Mihi',
-          email: 'user@gmail.com',
-          password: hash,
-        },
-        {
-          name: 'User 1',
-          email: 'user1@gmail.com',
-          password: hash,
-        },
-        {
-          name: 'User 2',
-          email: 'user2@gmail.com',
-          password: hash,
-        },
-        {
-          name: 'User 3',
-          email: 'user3@gmail.com',
-          password: hash,
-        },
-      ]);
+  async createUser(createUserDto: CreateUserDto) {
+    // 1. Kiểm tra xem email đã tồn tại chưa
+    const existingUser = await this.userModel.findOne({
+      email: createUserDto.email,
+    });
+    if (existingUser) {
+      throw new ConflictException('Email is already in use');
     }
+
+    // 2. Hash mật khẩu
+    const salt = genSaltSync(10);
+    const hashedPassword = hashSync(createUserDto.password, salt);
+
+    // 3. Tạo user mới
+    const user = new this.userModel({
+      email: createUserDto.email,
+      name: createUserDto.name,
+      password: hashedPassword,
+    });
+
+    return await user.save();
   }
 
   async findAll() {
@@ -64,5 +57,22 @@ export class UsersService implements OnModuleInit {
 
   async isValidPassword(password: string, hash: string) {
     return await compare(password, hash);
+  }
+
+  async findById(id: string) {
+    return await this.userModel.findById(id);
+  }
+
+  async deleteUserById(id: string) {
+    const user = await this.userModel.findById(id);
+    if (!user || user.isDeleted) {
+      throw new NotFoundException('User not found');
+    }
+
+    user.isDeleted = true;
+    user.deletedAt = new Date();
+    await user.save();
+
+    return { message: 'User deleted successfully' };
   }
 }
