@@ -26,6 +26,9 @@ export class User {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Company' })
   company: mongoose.Schema.Types.ObjectId;
 
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Role' })
+  role: mongoose.Schema.Types.ObjectId;
+
   @Prop({ type: Object })
   createdBy: {
     _id: mongoose.Schema.Types.ObjectId;

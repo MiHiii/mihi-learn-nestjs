@@ -24,10 +24,17 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     return super.canActivate(context);
   }
 
-  handleRequest(err: any, user: any, info: any): any {
+  handleRequest(err: any, user: any, info: { name: string }): any {
     if (err || !user) {
+      if (info?.name === 'TokenExpiredError') {
+        throw new UnauthorizedException('Token has expired');
+      }
+      if (info?.name === 'JsonWebTokenError') {
+        throw new UnauthorizedException('Invalid token');
+      }
       throw err || new UnauthorizedException('No authorization token provided');
     }
+
     return user;
   }
 }
