@@ -5,10 +5,10 @@ export type UserDocument = HydratedDocument<User>;
 
 @Schema({ timestamps: true })
 export class User {
-  @Prop()
+  @Prop({ required: true })
   name: string;
 
-  @Prop({ required: true })
+  @Prop({ required: true, unique: true })
   email: string;
 
   @Prop({ required: true })
@@ -29,25 +29,16 @@ export class User {
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'Role' })
   role: mongoose.Schema.Types.ObjectId;
 
-  @Prop({ type: Object })
-  createdBy: {
-    _id: mongoose.Schema.Types.ObjectId;
-    email: string;
-  };
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
+  createdBy: mongoose.Schema.Types.ObjectId;
 
-  @Prop({ type: Object })
-  updatedBy: {
-    _id: mongoose.Schema.Types.ObjectId;
-    email: string;
-  };
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
+  updatedBy: mongoose.Schema.Types.ObjectId;
 
-  @Prop({ type: Object })
-  deletedBy: {
-    _id: mongoose.Schema.Types.ObjectId;
-    email: string;
-  };
+  @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
+  deletedBy: mongoose.Schema.Types.ObjectId;
 
-  @Prop()
+  @Prop({ default: false })
   isDeleted: boolean;
 
   @Prop()
